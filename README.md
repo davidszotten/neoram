@@ -4,7 +4,7 @@ Run a temporary Neo4j graph on a RAM disk by doing the following:
 
 1. Check out this repository!
 2. Ensure the symlink *ramdisk* is pointing to a mounted RAM disk.
-3. `./neoram start`
+3. `./neoram start` (Neo4j 2.0.1 will be downloaded)
 
 When finished, run `./neoram stop` and the database will be flushed when the
 server stops.
