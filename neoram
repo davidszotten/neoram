@@ -1,0 +1,92 @@
+#!/usr/bin/env bash
+
+cd `dirname $0`
+
+NEO4J_VERSION="neo4j-community-2.0.1"
+
+NEORAM_HOME=`pwd`
+OPT=$NEORAM_HOME/opt
+RAMDISK=$NEORAM_HOME/ramdisk
+DATA=$NEORAM_HOME/data
+
+NEO4J_HOME=$OPT/neo4j
+
+function download {
+    # $1 - NEO4J_VERSION
+    echo "Downloading $1..."
+    mkdir -p $OPT 2> /dev/null
+    cd $OPT
+    curl -o $1-unix.tar.gz http://dist.neo4j.org/$1-unix.tar.gz
+    tar zxf $1-unix.tar.gz
+    ln -s $1 neo4j
+    echo ""
+}
+
+function ensure_downloaded {
+    if [ ! -e $NEO4J_HOME ]
+    then
+        download $NEO4J_VERSION
+    fi
+}
+
+function start {
+    ensure_downloaded
+    rm -rf $NEO4J_HOME/data/graph.db
+    mkdir $RAMDISK/graph.db
+    ln -s ../../../ramdisk/graph.db $NEO4J_HOME/data/graph.db
+    $NEO4J_HOME/bin/neo4j start
+    echo ""
+}
+
+function stop {
+    $NEO4J_HOME/bin/neo4j stop
+    rm -rf $NEO4J_HOME/data/graph.db
+    rm -rf $RAMDISK/*
+    echo ""
+}
+
+function resume {
+    # $1 - graph name
+    echo "Resuming graph $1..."
+    ensure_downloaded
+    cd $NEORAM_HOME
+    mkdir -p $DATA/$1 2> /dev/null
+    cp -af $DATA/$1 $RAMDISK/$1
+    rm -rf $NEO4J_HOME/data/graph.db
+    ln -s ../../../ramdisk/$1 $NEO4J_HOME/data/graph.db
+    $NEO4J_HOME/bin/neo4j start
+    echo ""
+}
+
+function suspend {
+    # $1 - graph name
+    echo "Suspending graph $1..."
+    cd $NEORAM_HOME
+    rm -f $NEO4J_HOME/data/graph.db
+    mkdir -p $DATA 2> /dev/null
+    cp -af $RAMDISK/$1 $DATA/
+    rm -rf $RAMDISK/$1
+    echo ""
+}
+
+function usage {
+    echo "$0 start|stop"
+}
+
+
+COMMAND=$1
+
+case "$COMMAND" in
+download)
+    download
+    ;;
+start)
+    start
+    ;;
+stop)
+    stop
+    ;;
+*)
+    usage
+esac
+
