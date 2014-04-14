@@ -45,7 +45,7 @@ function stop {
 }
 
 function usage {
-    echo "$0 start|stop"
+    echo "$0 start|stop|restart"
 }
 
 
@@ -60,6 +60,10 @@ start)
     ;;
 stop)
     stop
+    ;;
+restart)
+    stop
+    start
     ;;
 *)
     usage
