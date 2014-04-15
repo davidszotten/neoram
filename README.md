@@ -8,3 +8,8 @@ Run a temporary Neo4j graph on a RAM disk by doing the following:
 
 When finished, run `./neoram stop` and the database will be flushed when the
 server stops.
+
+To load and save database snapshots, store a graph.db directory in the `var`
+folder under any name. A snapshot called `snapshot1` can be loading using
+`./neoram start snapshot1`. To save the current database as a snapshot use
+`./neoram stop snapshot1`.
