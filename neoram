@@ -80,6 +80,7 @@ function stop {
 function usage {
     echo "$0 start [<load_from>]"
     echo "$0 stop [<save_to>]"
+    echo "$0 use <version>"
 }
 
 
