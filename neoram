@@ -2,7 +2,7 @@
 
 cd `dirname $0`
 
-NEO4J_VERSION="neo4j-community-2.0.1"
+NEO4J_VERSION="neo4j-community-2.1.2"
 
 NEORAM_HOME=`pwd`
 OPT=$NEORAM_HOME/opt
@@ -16,28 +16,42 @@ function download {
     echo "Downloading $1..."
     mkdir -p $OPT 2> /dev/null
     cd $OPT
-    curl -o $1-unix.tar.gz http://dist.neo4j.org/$1-unix.tar.gz
+    curl -f -o $1-unix.tar.gz http://dist.neo4j.org/$1-unix.tar.gz
+    STATUS=$?
+    if [ $STATUS != 0 ]
+    then
+        exit $STATUS
+    fi
     tar zxf $1-unix.tar.gz
-    ln -s $1 neo4j
+    #ln -s $1 neo4j
     echo ""
 }
 
 function ensure_downloaded {
-    if [ ! -e $NEO4J_HOME ]
+    # $1 - NEO4J_VERSION
+    if [ ! -e $OPT/$1 ]
     then
-        download $NEO4J_VERSION
+        download $1
     fi
 }
 
+function use {
+    # $1 - NEO4J_VERSION
+    ensure_downloaded $1
+    cd $OPT
+    rm neo4j
+    ln -s $1 neo4j
+}
+
 function start {
-    ensure_downloaded
+    use $NEO4J_VERSION
     rm -rf $NEO4J_HOME/data/graph.db
-    if [ "$2" == "" ]
+    if [ "$1" == "" ]
     then
         echo "Creating new database"
         mkdir $RAMDISK/graph.db
     else
-        LOAD_FROM=$2
+        LOAD_FROM=$1
         echo "Loading database '$LOAD_FROM'"
         mkdir -p $VAR 2> /dev/null
         cp -a $VAR/$LOAD_FROM $RAMDISK/graph.db
@@ -50,12 +64,12 @@ function start {
 function stop {
     $NEO4J_HOME/bin/neo4j stop
     rm -rf $NEO4J_HOME/data/graph.db
-    if [ "$2" == "" ]
+    if [ "$1" == "" ]
     then
         echo "Dropping database"
         rm -rf $RAMDISK/*
     else
-        SAVE_TO=$2
+        SAVE_TO=$1
         echo "Saving database '$SAVE_TO'"
         mkdir -p $VAR 2> /dev/null
         mv $RAMDISK/graph.db $VAR/$SAVE_TO
@@ -70,6 +84,7 @@ function usage {
 
 
 COMMAND=$1
+shift
 
 case "$COMMAND" in
 download)
@@ -80,6 +95,9 @@ start)
     ;;
 stop)
     stop $*
+    ;;
+use)
+    use "neo4j-community-$1"
     ;;
 *)
     usage
