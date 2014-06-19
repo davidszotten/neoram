@@ -1,10 +1,17 @@
 #!/usr/bin/env bash
 
-cd `dirname $0`
+# find current directry, expanding symlinks
+SOURCE="${BASH_SOURCE[0]}"
+while [ -h "$SOURCE" ]
+do
+    SOURCE="$(readlink "$SOURCE")"
+done
+NEORAM_HOME="$( cd -P "$( dirname "$SOURCE" )" && pwd )"
+
+cd $NEORAM_HOME
 
 NEO4J_VERSION="neo4j-community-2.1.2"
 
-NEORAM_HOME=`pwd`
 OPT=$NEORAM_HOME/opt
 VAR=$NEORAM_HOME/var
 RAMDISK=$NEORAM_HOME/ramdisk
